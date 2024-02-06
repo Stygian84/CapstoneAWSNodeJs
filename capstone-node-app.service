@@ -8,6 +8,7 @@ Restart=always
 User=ec2-user
 Group=ec2-user
 Environment=NODE_ENV=production
+EnvironmentFile=/home/ec2-user/CapstoneAWSNodeJs/.env
 
 [Install]
 WantedBy=multi-user.target
