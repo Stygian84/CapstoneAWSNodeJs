@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
+const https = require('https');
 
 require("dotenv").config();
 
@@ -174,7 +175,26 @@ app.get("/api/plant/:rowId/:plantId/:property", async (req, res) => {
 });
 
 // Start the server
+//--------------------HTTPS--------------------*/
 
+// try {
+//   const cred = {
+//     key: process.env.HTTPS_KEY,
+//     cert: process.env.HTTPS_CERT
+//   };
+
+//   const httpsServer = https.createServer(cred, app);
+
+//   httpsServer.listen(process.env.PORT_HTTPS, () => {
+//     console.log(`HTTPS server listening on port ${process.env.PORT_HTTPS}`);
+//   });
+// } catch (err) {
+//   console.log('HTTPS err:', err.stack);
+// }
+
+// app.listen(port, () => {
+//   console.log(`HTTP server listening on port ${port}`);
+// });
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
