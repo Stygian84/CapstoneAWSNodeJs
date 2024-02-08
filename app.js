@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
-const https = require('https');
+const https = require("https");
 
 require("dotenv").config();
 
@@ -50,6 +50,8 @@ ROW : rowdata + status
 Status : rowdata
 PlantDetails : Plantdata
 plantdetails graph -> plantdata (plantid,timestamp, value)
+
+propertiestable -> all
 */
 
 //Row Page (display each row and its overall status)
@@ -164,6 +166,24 @@ app.get("/api/plant/:rowId/:plantId/:property", async (req, res) => {
       WHERE RowID = $1 AND PlantID = $2
       ORDER BY timestamp ASC`,
       values: [rowId, plantId],
+    };
+
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error executing query:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+//PropertiesTable
+app.get("/api/table", async (req, res) => {
+  try {
+    const query = {
+      text: `
+      SELECT * FROM public.SoilProperties
+      ORDER BY id ASC
+      `,
     };
 
     const result = await pool.query(query);
