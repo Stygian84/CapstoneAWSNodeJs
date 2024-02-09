@@ -105,10 +105,15 @@ app.get("/api/plant", async (req, res) => {
     let queryText = `SELECT * FROM public."PlantData"`;
 
     if (rowId && plantId && property) {
-      queryText += ` WHERE RowID = $1 AND PlantID = $2 ORDER BY timestamp ASC`;
+      
+      const subQuery = `SELECT timestamp, ${property}
+      FROM public."PlantData"
+      WHERE RowID = $1 AND PlantID = $2
+      ORDER BY timestamp ASC`;
       const queryValues = [rowId, plantId];
-      const result = await pool.query({ text: queryText, values: queryValues });
+      const result = await pool.query({ text: subQuery, values: queryValues });
       res.json(result.rows);
+
     } else if (rowId && !plantId && !property) {
       queryText = `SELECT * FROM public."PlantData" pd
                    JOIN (
