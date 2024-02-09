@@ -73,43 +73,32 @@ app.get("/api/row", async (req, res) => {
 });
 
 //Status Page (display specific row status)
+// /api/status -> all rowdata
+// /api/status?rowId=123 -> only 1 row
 app.get("/api/status", async (req, res) => {
   try {
-    const query = {
-      text: `SELECT *
-      FROM public."RowData"
-      ORDER BY RowID ASC;
-      `,
-    };
+    const { rowId } = req.query;
+    let queryText = `SELECT * FROM public."RowData"`;
 
-    const result = await pool.query(query);
-    res.json(result.rows);
+    if (rowId) {
+      queryText += ` WHERE RowID = $1 ORDER BY RowID ASC`;
+      const queryValues = [rowId];
+      const result = await pool.query({ text: queryText, values: queryValues });
+      res.json(result.rows);
+    } else {
+      queryText += ` ORDER BY RowID ASC`;
+      const result = await pool.query(queryText);
+      res.json(result.rows);
+    }
   } catch (error) {
     console.error("Error executing query:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-app.get("/api/status/:rowId", async (req, res) => {
-  try {
-    const { rowId } = req.params;
-    const query = {
-      text: `SELECT *
-            FROM public."RowData"
-            WHERE RowID = $1
-            ORDER BY RowID ASC`,
-      values: [rowId],
-    };
-
-    const result = await pool.query(query);
-    res.json(result.rows);
-  } catch (error) {
-    console.error("Error executing query:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-// GET /api/plant with optional query parameters
+// GET /api/plant  -> all data
+// GET /api/plant?rowId=123 -> specific rowid plants latest timestamp details
+// GET /api/plant?rowId=123&plantId=456&property=color -> specific plant id in a specific rowid with specific data (eg humidity) and all timestamp
 app.get("/api/plant", async (req, res) => {
   try {
     const { rowId, plantId, property } = req.query;
@@ -142,77 +131,6 @@ app.get("/api/plant", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-
-// GET /api/plant/:rowId/:plantId/:property
-// No need for this route anymore as we're handling everything in the /api/plant route
-
-// // misc
-// app.get("/api/plant", async (req, res) => {
-//   try {
-//     const query = {
-//       text: `SELECT *
-//       FROM public."PlantData"
-//       ORDER BY RowID ASC;
-//       `,
-//     };
-
-//     const result = await pool.query(query);
-//     res.json(result.rows);
-//   } catch (error) {
-//     console.error("Error executing query:", error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
-
-// //PLantDetails (display specific rowid plants latest timestamp details)
-// // eg http://localhost:3001/api/plant/1
-// app.get("/api/plant/:rowId", async (req, res) => {
-//   try {
-//     const { rowId } = req.params;
-//     const query = {
-//       text: `SELECT *
-//           FROM public."PlantData" pd
-//           JOIN (
-//           SELECT PlantID, MAX(Timestamp) AS latest_timestamp
-//           FROM public."PlantData"
-//           WHERE RowID = $1
-//           GROUP BY PlantID
-//           ) AS latest ON pd.PlantID = latest.PlantID AND pd.Timestamp = latest.latest_timestamp
-//           ORDER BY pd.PlantID ASC;
-
-//       `,
-//       values: [rowId],
-//     };
-
-//     const result = await pool.query(query);
-//     res.json(result.rows);
-//   } catch (error) {
-//     console.error("Error executing query:", error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
-
-// //PlantDetailsGraph (display specific plant id in a specific rowid with specific data (eg humidity) and all timestamp)
-// // e.g. http://localhost:3001/api/plant/1/1/humidity
-// app.get("/api/plant/:rowId/:plantId/:property", async (req, res) => {
-//   try {
-//     const { rowId, plantId, property } = req.params;
-//     const query = {
-//       text: `SELECT timestamp, ${property}
-//       FROM public."PlantData"
-//       WHERE RowID = $1 AND PlantID = $2
-//       ORDER BY timestamp ASC`,
-//       values: [rowId, plantId],
-//     };
-
-//     const result = await pool.query(query);
-//     res.json(result.rows);
-//   } catch (error) {
-//     console.error("Error executing query:", error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
 
 //PropertiesTable
 app.get("/api/table", async (req, res) => {
