@@ -31,12 +31,14 @@ app.get("/api/data/:tableName", async (req, res) => {
   }
 });
 
-app.get("/api/query/:sqlQuery", async (req, res) => {
-  const { sqlQuery } = req.params;
+//api/query?sqlQuery=SELECT%20*%20FROM%20public."PlantData"
+app.get("/api/query", async (req, res) => {
+  const { sqlQuery } = req.query;
 
   try {
     // Use parameterized query to avoid SQL injection
-    const result = await pool.query(sqlQuery); //http://localhost:3001/api/data/SELECT%20*%20FROM%20public."PlantData"
+    const decodedQuery = decodeURIComponent(sqlQuery);
+    const result = await pool.query(decodedQuery);
     res.json(result.rows);
   } catch (error) {
     console.error("Error executing query:", error);
@@ -98,14 +100,13 @@ app.get("/api/status", async (req, res) => {
 
 // GET /api/plant  -> all data
 // GET /api/plant?rowId=123 -> specific rowid plants latest timestamp details
-// GET /api/plant?rowId=123&plantId=456&property=color -> specific plant id in a specific rowid with specific data (eg humidity) and all timestamp
+// GET api/plant?rowId=1&plantId=4&property=temperature -> specific plant id in a specific rowid with specific data (eg humidity) and all timestamp
 app.get("/api/plant", async (req, res) => {
   try {
     const { rowId, plantId, property } = req.query;
     let queryText = `SELECT * FROM public."PlantData"`;
 
     if (rowId && plantId && property) {
-      
       const subQuery = `SELECT timestamp, ${property}
       FROM public."PlantData"
       WHERE RowID = $1 AND PlantID = $2
@@ -113,7 +114,6 @@ app.get("/api/plant", async (req, res) => {
       const queryValues = [rowId, plantId];
       const result = await pool.query({ text: subQuery, values: queryValues });
       res.json(result.rows);
-
     } else if (rowId && !plantId && !property) {
       queryText = `SELECT * FROM public."PlantData" pd
                    JOIN (
