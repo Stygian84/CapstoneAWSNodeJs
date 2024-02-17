@@ -130,15 +130,14 @@ app.get("/api/row", async (req, res) => {
       const result = await pool.query({ text: subQuery, values: queryValues });
       res.json(result.rows);
     } else if (levelId && !rowId && !property) {
-      queryText = `SELECT pd.* FROM public."RowData" pd
-      JOIN (
-          SELECT RowID, MAX("Timestamp") AS latest_timestamp
-          FROM public."RowData"
-          WHERE LevelID = $1
-          GROUP BY RowID
-      ) AS latest ON pd.RowID = latest.RowID AND pd."Timestamp" = latest.latest_timestamp
-      WHERE pd.LevelID = $1
-      ORDER BY pd.RowID ASC`;
+      queryText = `SELECT * FROM public."RowData" pd
+                   JOIN (
+                   SELECT RowID, MAX(Timestamp) AS latest_timestamp
+                   FROM public."RowData"
+                   WHERE LevelID = $1
+                   GROUP BY RowID
+                   ) AS latest ON pd.RowID = latest.RowID AND pd.Timestamp = latest.latest_timestamp
+                   ORDER BY pd.RowID ASC;`;
       const queryValues = [levelId];
       const result = await pool.query({ text: queryText, values: queryValues });
       res.json(result.rows);
@@ -171,9 +170,10 @@ app.get("/api/table", async (req, res) => {
   }
 });
 
+
 // POST
 // Define a route to handle POST requests to create a new record in the database
-app.post("/post/plant", async (req, res) => {
+app.post('/post/plant', async (req, res) => {
   try {
     const { plantName, soilPH, soilMoisture, temperature, humidity, airQuality, status } = req.body;
 
@@ -189,8 +189,8 @@ app.post("/post/plant", async (req, res) => {
     // Respond with the newly created record
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error("Error executing SQL query:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Error executing SQL query:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -219,6 +219,7 @@ app.post("/post/plant", async (req, res) => {
 //     print('Plant data uploaded successfully:', response.json())
 // else:
 //     print('Failed to upload plant data:', response.status_code, response.text)
+
 
 // Start the server
 //--------------------HTTPS--------------------*/
