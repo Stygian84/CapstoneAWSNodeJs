@@ -150,7 +150,19 @@ app.get("/api/row", async (req, res) => {
       const queryValues = [levelId, rowId];
       const result = await pool.query({ text: subQuery, values: queryValues });
       res.json(result.rows);
-    } else if (levelId && !rowId && !property) {
+    } else if (levelId && rowId && !property) {
+      const subQuery = `SELECT *
+      FROM public."RowData"
+      WHERE LevelID = $1 AND RowID = $2
+        AND timestamp = (
+          SELECT MAX(timestamp)
+          FROM public."RowData"
+          WHERE LevelID = $1 AND RowID = $2
+        );`;
+      const queryValues = [levelId, rowId];
+      const result = await pool.query({ text: subQuery, values: queryValues });
+      res.json(result.rows);
+    }else if (levelId && !rowId && !property) {
       queryText = `SELECT * FROM public."RowData" pd
                    JOIN (
                    SELECT RowID, MAX(Timestamp) AS latest_timestamp
