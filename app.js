@@ -89,6 +89,27 @@ app.get("/api/level", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+app.get("/api/parameter", async (req, res) => {
+  try {
+    const query = {
+      text: `WITH LatestTimestamp AS (
+        SELECT RowID, LevelID, MAX(Timestamp) AS LatestTimestamp
+        FROM public."RowData"
+        GROUP BY RowID, LevelID
+    )
+    SELECT yt.Status, lt.RowID, lt.LevelID
+    FROM LatestTimestamp lt
+    INNER JOIN public."RowData" yt ON lt.RowID = yt.RowID AND lt.LevelID = yt.LevelID AND lt.LatestTimestamp = yt.Timestamp
+    ORDER BY lt.LevelID ASC, lt.RowID ASC;`,
+    };
+
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error executing query:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 //Status Page (display specific row status)
 // /api/status -> all rowdata
 // /api/status?rowId=123 -> only 1 row
@@ -170,10 +191,9 @@ app.get("/api/table", async (req, res) => {
   }
 });
 
-
 // POST
 // Define a route to handle POST requests to create a new record in the database
-app.post('/post/plant', async (req, res) => {
+app.post("/post/plant", async (req, res) => {
   try {
     const { plantName, soilPH, soilMoisture, temperature, humidity, airQuality, status } = req.body;
 
@@ -189,8 +209,8 @@ app.post('/post/plant', async (req, res) => {
     // Respond with the newly created record
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Error executing SQL query:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error executing SQL query:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -219,7 +239,6 @@ app.post('/post/plant', async (req, res) => {
 //     print('Plant data uploaded successfully:', response.json())
 // else:
 //     print('Failed to upload plant data:', response.status_code, response.text)
-
 
 // Start the server
 //--------------------HTTPS--------------------*/
