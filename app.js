@@ -18,33 +18,33 @@ const pool = new Pool({
   sslmode: "require",
 });
 
-app.get("/api/data/:tableName", async (req, res) => {
-  const { tableName } = req.params;
+// app.get("/api/data/:tableName", async (req, res) => {
+//   const { tableName } = req.params;
 
-  try {
-    // Use parameterized query to avoid SQL injection
-    const result = await pool.query(`SELECT * FROM public."${tableName}"`);
-    res.json(result.rows);
-  } catch (error) {
-    console.error("Error executing query:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+//   try {
+//     // Use parameterized query to avoid SQL injection
+//     const result = await pool.query(`SELECT * FROM public."${tableName}"`);
+//     res.json(result.rows);
+//   } catch (error) {
+//     console.error("Error executing query:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
 
-//api/query?sqlQuery=SELECT%20*%20FROM%20public."PlantData"
-app.get("/api/query", async (req, res) => {
-  const { sqlQuery } = req.query;
+// //api/query?sqlQuery=SELECT%20*%20FROM%20public."PlantData"
+// app.get("/api/query", async (req, res) => {
+//   const { sqlQuery } = req.query;
 
-  try {
-    // Use parameterized query to avoid SQL injection
-    const decodedQuery = decodeURIComponent(sqlQuery);
-    const result = await pool.query(decodedQuery);
-    res.json(result.rows);
-  } catch (error) {
-    console.error("Error executing query:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+//   try {
+//     // Use parameterized query to avoid SQL injection
+//     const decodedQuery = decodeURIComponent(sqlQuery);
+//     const result = await pool.query(decodedQuery);
+//     res.json(result.rows);
+//   } catch (error) {
+//     console.error("Error executing query:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
 
 /*
 list query needed for each page
@@ -162,7 +162,7 @@ app.get("/api/row", async (req, res) => {
       const queryValues = [levelId, rowId];
       const result = await pool.query({ text: subQuery, values: queryValues });
       res.json(result.rows);
-    }else if (levelId && !rowId && !property) {
+    } else if (levelId && !rowId && !property) {
       queryText = `SELECT * FROM public."RowData" pd
                    JOIN (
                    SELECT RowID, MAX(Timestamp) AS latest_timestamp
@@ -207,15 +207,15 @@ app.get("/api/table", async (req, res) => {
 // Define a route to handle POST requests to create a new record in the database
 app.post("/post/plant", async (req, res) => {
   try {
-    const { plantName, soilPH, soilMoisture, temperature, humidity, airQuality, status } = req.body;
+    const { RowID, LevelID, plantName, soilPH, soilMoisture, temperature, humidity, airQuality, status } = req.body;
 
     // Insert the new record into the database
     const query = `
-      INSERT INTO PlantData (PlantName, SoilPH, SoilMoisture, Temperature, Humidity, AirQuality, Status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO PlantData (RowID, LevelID, PlantName, SoilPH, SoilMoisture, Temperature, Humidity, AirQuality, Status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
-    const values = [plantName, soilPH, soilMoisture, temperature, humidity, airQuality, status];
+    const values = [RowID, LevelID, plantName, soilPH, soilMoisture, temperature, humidity, airQuality, status];
     const result = await pool.query(query, values);
 
     // Respond with the newly created record
@@ -225,6 +225,7 @@ app.post("/post/plant", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 // Sample POST script
 // import requests
