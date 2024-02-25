@@ -213,7 +213,7 @@ app.post("/post/plant", async (req, res) => {
 
     // Insert the new record into the database
     const query = `
-      INSERT INTO PlantData (RowID, LevelID, PlantName, SoilPH, SoilMoisture, Temperature, Humidity, AirQuality, Status)
+      INSERT INTO public."RowData" (RowID, LevelID, PlantName, SoilPH, SoilMoisture, Temperature, Humidity, AirQuality, Status)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
