@@ -1,15 +1,20 @@
+// Init
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
-const bodyParser = require('body-parser');
+const bodyParser = require("body-parser");
 const https = require("https");
-
+const { Firestore } = require("@google-cloud/firestore");
+var admin = require("firebase-admin");
+var serviceAccount = require("./key.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+const firestore = new Firestore({ projectId: "capstonenotification-bdce8", keyFilename: "./key.json" });
 require("dotenv").config();
-
 const port = process.env.PORT || 3001;
 const app = express();
 app.use(cors());
-
 app.use(bodyParser.json());
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -228,7 +233,6 @@ app.post("/post/plant", async (req, res) => {
   }
 });
 
-
 // Sample POST script
 // import requests
 
@@ -276,6 +280,40 @@ app.post("/post/plant", async (req, res) => {
 // app.listen(port, () => {
 //   console.log(`HTTP server listening on port ${port}`);
 // });
+
+
+// Firebase
+
+async function saveTokenToFirestore(userId, token) {
+  const docRef = firestore.collection("userToken").doc(userId);
+  await docRef.set({ token });
+}
+
+// Function to fetch token from Firestore
+async function getTokenFromFirestore(userId) {
+  const docRef = firestore.collection("userToken").doc(userId);
+  const doc = await docRef.get();
+  if (doc.exists) {
+    return doc.data().token;
+  } else {
+    return null;
+  }
+}
+
+app.post("/post/token", async (req, res) => {
+  try {
+    const { UserID, token } = req.body;
+    await saveTokenToFirestore(UserID, token);
+    res.status(201);
+  } catch (error) {
+    console.error("Error updating token:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
