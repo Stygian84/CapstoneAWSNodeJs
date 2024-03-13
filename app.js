@@ -311,7 +311,7 @@ app.post("/post/token", async (req, res) => {
 });
 
 // Set up polling interval
-const pollingInterval = 60000; // 1 minute
+const pollingInterval = 600000; // 10 minute
 setInterval(async () => {
   try {
     // Perform the check for each collection

@@ -19,7 +19,7 @@ for (let row = 1; row <= 4; row++) {
 
 // Loop for Level3
 for (let row = 1; row <= 4; row++) {
-    for (let col = 'D'; col <= 'D'; col++) {
+    for (let col = 'C'; col <= 'D'; col++) {
         const cell = col + row;
         data.push({ level: 'Level3', cell: cell, value: 7 });
     }
