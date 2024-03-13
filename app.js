@@ -281,7 +281,6 @@ app.post("/post/plant", async (req, res) => {
 //   console.log(`HTTP server listening on port ${port}`);
 // });
 
-
 // Firebase
 
 async function saveTokenToFirestore(userId, token) {
@@ -311,9 +310,76 @@ app.post("/post/token", async (req, res) => {
   }
 });
 
+// Set up polling interval
+const pollingInterval = 60000; // 1 minute
+setInterval(async () => {
+  try {
+    // Perform the check for each collection
+    const collections = ["Level2", "Level3"];
+    const results = [];
+    const tokenCollections = [];
+    const zeroValue = [];
+    const collectionTokenRef = firestore.collection("userToken");
+    const snapshotToken = await collectionTokenRef.get();
+    const tokenValues = snapshotToken.docs.map((doc) => doc.data().token);
+    tokenCollections.push(tokenValues);
 
+    for (const collectionName of collections) {
+      const collectionRef = firestore.collection(collectionName);
+      const snapshot = await collectionRef.get();
+      const documents = snapshot.docs.map((doc) => doc.data());
+      const hasZeroOrBelow = documents.some((doc) => doc.value <= 0);
+      results.push({ collectionName, hasZeroOrBelow });
+      if (hasZeroOrBelow) {
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data.value <= 0) {
+            zeroValue.push({ collectionName, docId: doc.id });
+          }
+        });
 
+        //send notif to all tokens in tokencollection
+        tokenValues.forEach(async (token) => {
+          try {
+            // Iterate over each zero value and send a notification
+            zeroValue.forEach(async (item) => {
+              const collectionName = item.collectionName;
+              const docId = item.docId;
+              const body = `${collectionName} - Document ID: ${docId}`;
+
+              await sendNotification(token, "Time to Harvest", body);
+              console.log("Notification sent to token:", token);
+            });
+          } catch (error) {
+            console.error("Error sending notification:", error);
+          }
+        });
+      } else {
+        continue;
+      }
+    }
+    console.log(zeroValue);
+  } catch (error) {
+    console.error("Error during polling:", error);
+  }
+}, pollingInterval);
+// Polling Notif ends here
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server is running on port : ${port}`);
 });
+
+async function sendNotification(token, title, body) {
+  try {
+    await admin.messaging().send({
+      token: token,
+      notification: {
+        title: title,
+        body: body,
+      },
+    });
+    console.log("Notification sent successfully");
+  } catch (error) {
+    console.error("Error sending notification:", error);
+  }
+}
