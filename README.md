@@ -7,7 +7,10 @@
 # How to Host
 1. Find a service that can host Node.JS ( like [AWS EC2](https://aws.amazon.com/pm/ec2/) and [Render](https://render.com) )
 2. Follow their instructions but most of the time, only need to put `node app.js` as the start command.
-3. Insert all the necessary environment variables. ( `DB_HOST`,`DB_NAME`,`DB_PASSWORD`,`DB_PORT`,`DB_USER`,`PORT` )
+3. Insert all the necessary environment variables. ( `DB_HOST`,`DB_NAME`,`DB_PASSWORD`,`DB_PORT`,`DB_USER`,`PORT` ) for the AWS RDS database.
+4. Add Secret files `key.json` for the firebase/firetore credentials. 
 
 # Notes
-The `pushInitData` is to initialise 7 Harvest Days for all the Rows for each level in the Firebase.
+1. The `pushInitData` is to initialise 7 Harvest Days for all the Rows for each level in the Firebase.
+2. Firebase database is mainly for notification features (userToken + track harvest time for each row) and Raspberry Pi Pump control (True or False).
+3. AWS RDS stores the rest of the data ( data gathered by the sensors and the thresholds for each status )
