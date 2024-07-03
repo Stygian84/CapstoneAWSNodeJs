@@ -22,7 +22,8 @@ const pool = new Pool({
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
-  sslmode: "require",
+  ssl: true
+  
 });
 
 // app.get("/api/data/:tableName", async (req, res) => {
